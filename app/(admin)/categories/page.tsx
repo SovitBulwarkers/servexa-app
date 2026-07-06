@@ -10,25 +10,24 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
 import toast from 'react-hot-toast';
 
-const MOCK_CATS = ['Plumbing', 'Electrical', 'Cleaning', 'Carpentry', 'Painting', 'AC Repair', 'Pest Control', 'Appliance Repair'].map((name, i) => ({
-  id: `c${i}`, name, description: `Professional ${name.toLowerCase()} services`, icon: '🔧', isActive: true,
-  sortOrder: i, createdAt: new Date().toISOString(), _count: { services: Math.floor(Math.random() * 15) + 2 }
-}));
-
 export default function CategoriesPage() {
   const [cats, setCats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [modal, setModal] = useState<{ open: boolean; item?: any }>({ open: false });
   const [form, setForm] = useState({ name: '', description: '', icon: '', sortOrder: 0 });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await categoriesApi.list();
       setCats(res.data?.data || []);
-    } catch { setCats(MOCK_CATS); }
-    finally { setLoading(false); }
+    } catch {
+      setError(true);
+      toast.error('Failed to load categories');
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
@@ -64,15 +63,23 @@ export default function CategoriesPage() {
 
   if (loading) return <Spinner />;
 
+  if (error) {
+    return (
+      <EmptyState icon={<Tag className="w-8 h-8" />} title="Couldn't load categories"
+        description="Check that the backend API is reachable, then try again."
+        action={<Button onClick={load}>Retry</Button>} />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
         <Button icon={<Plus className="w-4 h-4" />} onClick={openCreate}>Add Category</Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {cats.length === 0 ? (
-          <div className="col-span-4">
+          <div className="col-span-full">
             <EmptyState icon={<Tag className="w-8 h-8" />} title="No categories yet" description="Create your first service category" />
           </div>
         ) : cats.map(cat => (

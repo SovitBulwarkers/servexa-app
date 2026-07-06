@@ -12,28 +12,24 @@ import { Badge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
-const MOCK = Array.from({ length: 8 }, (_, i) => ({
-  id: `coup${i}`, code: ['FIRST50', 'SAVE100', 'FLAT20', 'WELCOME', 'DIWALI25', 'OFF30', 'NEW10', 'VIP150'][i],
-  description: 'Limited time offer', discountType: i % 2 === 0 ? 'percentage' : 'fixed',
-  discountValue: [50, 100, 20, 0, 25, 30, 10, 150][i], minOrderValue: 200, maxDiscount: i % 2 === 0 ? 200 : null,
-  usageLimit: [100, 50, null, 200, 300, 150, 500, 30][i], usedCount: Math.floor(Math.random() * 80),
-  isActive: i % 5 !== 3, expiresAt: i % 3 !== 0 ? new Date(Date.now() + (i + 1) * 30 * 86400000).toISOString() : null,
-}));
-
 export default function CouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [modal, setModal] = useState<{ open: boolean; item?: any }>({ open: false });
   const [form, setForm] = useState({ code: '', description: '', discountType: 'percentage', discountValue: 0, minOrderValue: 0, maxDiscount: '', usageLimit: '', expiresAt: '' });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await couponsApi.list();
       setCoupons(res.data?.data?.coupons || []);
-    } catch { setCoupons(MOCK); }
-    finally { setLoading(false); }
+    } catch {
+      setError(true);
+      toast.error('Failed to load coupons');
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
@@ -66,6 +62,14 @@ export default function CouponsPage() {
   };
 
   if (loading) return <Spinner />;
+
+  if (error) {
+    return (
+      <EmptyState icon={<Ticket className="w-8 h-8" />} title="Couldn't load coupons"
+        description="Check that the backend API is reachable, then try again."
+        action={<Button onClick={load}>Retry</Button>} />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -124,7 +128,7 @@ export default function CouponsPage() {
 
       <Modal open={modal.open} onClose={() => setModal({ open: false })} title={modal.item ? 'Edit Coupon' : 'Create Coupon'} size="md">
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input label="Coupon Code" placeholder="SAVE50" value={form.code}
               onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} />
             <Select label="Discount Type" value={form.discountType}
@@ -135,7 +139,7 @@ export default function CouponsPage() {
           </div>
           <Input label="Description" placeholder="Limited time offer" value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Input label={`Discount ${form.discountType === 'percentage' ? '(%)' : '(₹)'}`} type="number"
               value={form.discountValue} onChange={e => setForm(f => ({ ...f, discountValue: +e.target.value }))} />
             <Input label="Min Order (₹)" type="number" value={form.minOrderValue}
@@ -143,7 +147,7 @@ export default function CouponsPage() {
             <Input label="Max Discount (₹)" type="number" value={form.maxDiscount}
               onChange={e => setForm(f => ({ ...f, maxDiscount: e.target.value }))} placeholder="Optional" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input label="Usage Limit" type="number" value={form.usageLimit}
               onChange={e => setForm(f => ({ ...f, usageLimit: e.target.value }))} placeholder="Unlimited" />
             <Input label="Expires At" type="date" value={form.expiresAt}

@@ -21,25 +21,20 @@ export default function CustomersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [selected, setSelected] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await customersApi.list(search || undefined, page);
       setCustomers(res.data?.data?.users || []);
       setTotal(res.data?.data?.total || 0);
     } catch {
-      // mock data
-      setCustomers(Array.from({ length: 10 }, (_, i) => ({
-        id: `u${i}`, name: ['Arjun Sharma', 'Priya Patel', 'Rahul Nayak', 'Sunita Mishra', 'Deepak Das'][i % 5],
-        phone: `9${(8000000000 + i * 111111).toString().slice(1)}`,
-        email: `user${i}@gmail.com`, isBlocked: i === 2, isActive: true,
-        createdAt: new Date(Date.now() - i * 7 * 86400000).toISOString(),
-        _count: { bookings: Math.floor(Math.random() * 20) + 1 }
-      })));
-      setTotal(84);
+      setError(true);
+      toast.error('Failed to load customers');
     } finally {
       setLoading(false);
     }
@@ -53,7 +48,7 @@ export default function CustomersPage() {
       const res = await customersApi.get(id);
       setSelected(res.data?.data);
     } catch {
-      setSelected(customers.find(c => c.id === id));
+      toast.error('Failed to load customer details');
     } finally {
       setDetailLoading(false);
     }
@@ -70,7 +65,7 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex-1 max-w-sm">
           <Input placeholder="Search by name, phone, email…" value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -80,7 +75,11 @@ export default function CustomersPage() {
       </div>
 
       <Card>
-        {loading ? <Spinner /> : customers.length === 0 ? (
+        {loading ? <Spinner /> : error ? (
+          <EmptyState icon={<Search className="w-8 h-8" />} title="Couldn't load customers"
+            description="Check that the backend API is reachable, then try again."
+            action={<Button onClick={load}>Retry</Button>} />
+        ) : customers.length === 0 ? (
           <EmptyState icon={<Search className="w-8 h-8" />} title="No customers found" />
         ) : (
           <>
@@ -150,7 +149,7 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: 'Total Bookings', value: selected._count?.bookings ?? 0 },
                 { label: 'Reviews', value: selected._count?.reviews ?? 0 },

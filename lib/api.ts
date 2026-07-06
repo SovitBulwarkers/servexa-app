@@ -121,6 +121,8 @@ export const notificationsApi = {
 export const supportApi = {
   list: (status?: string, page = 1, limit = 20) =>
     api.get('/support/admin/tickets', { params: { status, page, limit } }),
+  get: (id: string) => api.get(`/support/tickets/${id}`),
+  reply: (id: string, message: string) => api.post(`/support/tickets/${id}/reply`, { message }),
   resolve: (id: string) => api.put(`/support/admin/tickets/${id}/resolve`),
   close: (id: string) => api.put(`/support/admin/tickets/${id}/close`),
 };

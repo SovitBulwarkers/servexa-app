@@ -22,34 +22,19 @@ export default function WorkersPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [selected, setSelected] = useState<any>(null);
-
-  const MOCK = Array.from({ length: 12 }, (_, i) => ({
-    id: `w${i}`, name: ['Suresh Kumar', 'Ramesh Das', 'Bikash Panda', 'Tapas Jena', 'Sanjay Nayak'][i % 5],
-    phone: `7${(7000000000 + i * 123456).toString().slice(1)}`,
-    email: `worker${i}@gmail.com`,
-    status: ['PENDING', 'APPROVED', 'APPROVED', 'REJECTED', 'SUSPENDED'][i % 5],
-    rating: (3.5 + Math.random() * 1.5).toFixed(1),
-    totalJobs: Math.floor(Math.random() * 200),
-    experience: Math.floor(Math.random() * 10) + 1,
-    isOnline: i % 3 === 0,
-    createdAt: new Date(Date.now() - i * 5 * 86400000).toISOString(),
-    services: [{ service: { name: 'Plumbing' } }, { service: { name: 'Electrical' } }].slice(0, (i % 2) + 1),
-    documents: [{ id: `d${i}a`, type: 'AADHAR', url: '#', isVerified: i % 2 === 0 },
-                { id: `d${i}b`, type: 'PAN', url: '#', isVerified: i % 3 === 0 }],
-    _count: { bookings: Math.floor(Math.random() * 150), reviews: Math.floor(Math.random() * 80) },
-    wallet: { balance: Math.floor(Math.random() * 20000) },
-  }));
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await workersApi.list(status || undefined, search || undefined, page);
       setWorkers(res.data?.data?.workers || []);
       setTotal(res.data?.data?.total || 0);
     } catch {
-      setWorkers(MOCK.filter(w => !status || w.status === status));
-      setTotal(87);
+      setError(true);
+      toast.error('Failed to load workers');
     } finally { setLoading(false); }
   }, [search, status, page]);
 
@@ -59,7 +44,7 @@ export default function WorkersPage() {
     try {
       const res = await workersApi.get(id);
       setSelected(res.data?.data);
-    } catch { setSelected(MOCK.find(w => w.id === id) || workers.find(w => w.id === id)); }
+    } catch { toast.error('Failed to load worker details'); }
   };
 
   const updateStatus = async (id: string, s: string) => {
@@ -86,13 +71,13 @@ export default function WorkersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <div className="flex-1 max-w-sm">
           <Input placeholder="Search workers…" value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
             icon={<Search className="w-4 h-4" />} />
         </div>
-        <div className="w-44">
+        <div className="w-full sm:w-44">
           <Select value={status} onChange={(e: any) => { setStatus(e.target.value); setPage(1); }}>
             <option value="">All Status</option>
             <option value="PENDING">Pending</option>
@@ -101,11 +86,15 @@ export default function WorkersPage() {
             <option value="SUSPENDED">Suspended</option>
           </Select>
         </div>
-        <p className="text-sm text-slate-500">{total} workers</p>
+        <p className="text-sm text-slate-500 sm:ml-auto">{total} workers</p>
       </div>
 
       <Card>
-        {loading ? <Spinner /> : workers.length === 0 ? (
+        {loading ? <Spinner /> : error ? (
+          <EmptyState icon={<Search className="w-8 h-8" />} title="Couldn't load workers"
+            description="Check that the backend API is reachable, then try again."
+            action={<Button onClick={load}>Retry</Button>} />
+        ) : workers.length === 0 ? (
           <EmptyState icon={<Search className="w-8 h-8" />} title="No workers found" />
         ) : (
           <>
@@ -205,7 +194,7 @@ export default function WorkersPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: 'Rating', value: `${selected.rating}★` },
                 { label: 'Total Jobs', value: selected.totalJobs ?? selected._count?.bookings ?? 0 },
@@ -234,19 +223,22 @@ export default function WorkersPage() {
             )}
 
             {/* Documents */}
-            {selected.documents?.length > 0 && (
+            {selected.documents?.length > 0 ? (
               <div>
                 <p className="text-sm font-semibold text-slate-700 mb-2">Documents</p>
                 <div className="space-y-2">
                   {selected.documents.map((doc: any) => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-slate-400" />
+                    <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <FileText className="w-4 h-4 text-slate-400 shrink-0" />
                         <span className="text-sm font-medium text-slate-700">{doc.type}</span>
                         <Badge label={doc.isVerified ? 'VERIFIED' : 'PENDING'}
                           className={doc.isVerified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} />
                       </div>
                       <div className="flex gap-2">
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="ghost" icon={<Eye className="w-3.5 h-3.5" />}>View</Button>
+                        </a>
                         {!doc.isVerified && (
                           <Button size="sm" variant="success" onClick={() => verifyDoc(doc.id, true)}>Verify</Button>
                         )}
@@ -257,6 +249,10 @@ export default function WorkersPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-amber-50 rounded-xl text-sm text-amber-700 flex items-center gap-2">
+                <FileText className="w-4 h-4 shrink-0" /> No documents uploaded yet by this worker.
               </div>
             )}
 

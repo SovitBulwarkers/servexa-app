@@ -5,8 +5,11 @@ import { reportsApi } from '@/lib/api';
 import { StatCard } from '@/components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { formatCurrency } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/EmptyState';
+import toast from 'react-hot-toast';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -25,42 +28,44 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [revenue, setRevenue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [statsRes, revRes] = await Promise.all([
-          reportsApi.getDashboard(),
-          reportsApi.getRevenue(
-            new Date(Date.now() - 29 * 86400000).toISOString().split('T')[0],
-            new Date().toISOString().split('T')[0],
-            'day'
-          )
-        ]);
-        setStats(statsRes.data?.data);
-        setRevenue(revRes.data?.data);
-      } catch (e) {
-        // use mock data for demo
-        setStats({
-          totalUsers: 1284, totalWorkers: 87, totalBookings: 3492,
-          todayBookings: 24, totalRevenue: 524890, todayRevenue: 8200,
-          pendingWorkers: 12, openTickets: 5,
-          bookingsByStatus: { PENDING: 45, ACCEPTED: 120, IN_PROGRESS: 38, COMPLETED: 3200, CANCELLED: 89 }
-        });
-        const chart: Record<string, number> = {};
-        for (let i = 29; i >= 0; i--) {
-          const d = new Date(Date.now() - i * 86400000);
-          chart[d.toISOString().split('T')[0]] = Math.floor(Math.random() * 15000) + 5000;
-        }
-        setRevenue({ chart, total: 524890 });
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  const load = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const [statsRes, revRes] = await Promise.all([
+        reportsApi.getDashboard(),
+        reportsApi.getRevenue(
+          new Date(Date.now() - 29 * 86400000).toISOString().split('T')[0],
+          new Date().toISOString().split('T')[0],
+          'day'
+        )
+      ]);
+      setStats(statsRes.data?.data);
+      setRevenue(revRes.data?.data);
+    } catch (e) {
+      setError(true);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
 
   if (loading) return <Spinner />;
+
+  if (error) {
+    return (
+      <EmptyState
+        icon={<TrendingUp className="w-8 h-8" />}
+        title="Couldn't load dashboard"
+        description="Check that the backend API is reachable, then try again."
+        action={<Button onClick={load}>Retry</Button>}
+      />
+    );
+  }
 
   const revenueChart = revenue?.chart
     ? Object.entries(revenue.chart).map(([date, amount]) => ({
@@ -76,7 +81,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard title="Total Customers" value={stats?.totalUsers?.toLocaleString() ?? '—'}
           icon={<Users className="w-5 h-5 text-blue-600" />} iconBg="bg-blue-50"
           subtitle="Registered users" />
@@ -92,7 +97,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Alerts row */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Card className="p-5 border-l-4 border-l-amber-400">
           <div className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-amber-500" />
@@ -114,8 +119,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-3 gap-5">
-        <Card className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Revenue — Last 30 Days</CardTitle>
