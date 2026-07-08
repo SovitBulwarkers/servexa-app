@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
 import toast from 'react-hot-toast';
@@ -15,7 +16,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [modal, setModal] = useState<{ open: boolean; item?: any }>({ open: false });
-  const [form, setForm] = useState({ name: '', description: '', icon: '', sortOrder: 0 });
+  const [form, setForm] = useState({ name: '', description: '', icon: '', sortOrder: 0, image: '' });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -32,8 +33,8 @@ export default function CategoriesPage() {
 
   useEffect(() => { load(); }, []);
 
-  const openCreate = () => { setForm({ name: '', description: '', icon: '', sortOrder: cats.length }); setModal({ open: true }); };
-  const openEdit = (item: any) => { setForm({ name: item.name, description: item.description || '', icon: item.icon || '', sortOrder: item.sortOrder }); setModal({ open: true, item }); };
+  const openCreate = () => { setForm({ name: '', description: '', icon: '', sortOrder: cats.length, image: '' }); setModal({ open: true }); };
+  const openEdit = (item: any) => { setForm({ name: item.name, description: item.description || '', icon: item.icon || '', sortOrder: item.sortOrder, image: item.image || '' }); setModal({ open: true, item }); };
 
   const handleSave = async () => {
     if (!form.name.trim()) return toast.error('Name required');
@@ -83,9 +84,18 @@ export default function CategoriesPage() {
             <EmptyState icon={<Tag className="w-8 h-8" />} title="No categories yet" description="Create your first service category" />
           </div>
         ) : cats.map(cat => (
-          <Card key={cat.id} className="p-5 group hover:border-blue-200 transition-colors">
+          <Card key={cat.id} className="p-0 overflow-hidden group hover:border-blue-200 transition-colors">
+            {cat.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={cat.image} alt={cat.name} className="w-full h-28 object-cover" />
+            ) : (
+              <div className="w-full h-28 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center text-3xl">
+                {cat.icon || '🔧'}
+              </div>
+            )}
+            <div className="p-5">
             <div className="flex items-start justify-between mb-3">
-              <div className="w-11 h-11 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl flex items-center justify-center text-xl">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg bg-slate-50 border border-slate-100">
                 {cat.icon || '🔧'}
               </div>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -105,12 +115,19 @@ export default function CategoriesPage() {
               </span>
               <span className={`w-2 h-2 rounded-full ${cat.isActive ? 'bg-emerald-400' : 'bg-slate-300'}`} />
             </div>
+            </div>
           </Card>
         ))}
       </div>
 
       <Modal open={modal.open} onClose={() => setModal({ open: false })} title={modal.item ? 'Edit Category' : 'Add Category'} size="sm">
         <div className="space-y-4">
+          <ImageUpload
+            label="Category Image"
+            value={form.image}
+            onChange={(url) => setForm(f => ({ ...f, image: url }))}
+            folder="categories"
+          />
           <Input label="Name" placeholder="e.g. Plumbing" value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
           <Textarea label="Description" placeholder="What services does this category include?" value={form.description}

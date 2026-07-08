@@ -6,32 +6,27 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
-const MOCK_CATS = ['Plumbing', 'Electrical', 'Cleaning', 'Carpentry'].map((n, i) => ({ id: `c${i}`, name: n }));
-const MOCK_SVS = Array.from({ length: 12 }, (_, i) => ({
-  id: `s${i}`, name: ['Pipe Repair', 'Fan Installation', 'Deep Cleaning', 'Cabinet Making'][i % 4],
-  description: 'Professional service by trained experts',
-  basePrice: 500 + i * 100, priceType: i % 2 === 0 ? 'fixed' : 'hourly', duration: 60 + i * 15,
-  isActive: i % 5 !== 3, category: { id: `c${i % 4}`, name: ['Plumbing', 'Electrical', 'Cleaning', 'Carpentry'][i % 4] }
-}));
-
 export default function ServicesPage() {
   const [services, setServices] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [catFilter, setCatFilter] = useState('');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<{ open: boolean; item?: any }>({ open: false });
-  const [form, setForm] = useState({ name: '', description: '', categoryId: '', basePrice: 0, priceType: 'fixed', duration: 60 });
+  const [form, setForm] = useState({ name: '', description: '', categoryId: '', basePrice: 0, priceType: 'fixed', duration: 60, image: '' });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const [sRes, cRes] = await Promise.all([
         servicesApi.list(catFilter || undefined, search || undefined),
@@ -40,19 +35,19 @@ export default function ServicesPage() {
       setServices(sRes.data?.data || []);
       setCategories(cRes.data?.data || []);
     } catch {
-      setServices(MOCK_SVS.filter(s => !catFilter || s.category.id === catFilter));
-      setCategories(MOCK_CATS);
+      setError(true);
+      toast.error('Failed to load services');
     } finally { setLoading(false); }
   }, [catFilter, search]);
 
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => {
-    setForm({ name: '', description: '', categoryId: categories[0]?.id || '', basePrice: 0, priceType: 'fixed', duration: 60 });
+    setForm({ name: '', description: '', categoryId: categories[0]?.id || '', basePrice: 0, priceType: 'fixed', duration: 60, image: '' });
     setModal({ open: true });
   };
   const openEdit = (item: any) => {
-    setForm({ name: item.name, description: item.description || '', categoryId: item.categoryId || item.category?.id, basePrice: item.basePrice, priceType: item.priceType, duration: item.duration });
+    setForm({ name: item.name, description: item.description || '', categoryId: item.categoryId || item.category?.id, basePrice: item.basePrice, priceType: item.priceType, duration: item.duration, image: item.image || '' });
     setModal({ open: true, item });
   };
 
@@ -76,6 +71,14 @@ export default function ServicesPage() {
 
   if (loading) return <Spinner />;
 
+  if (error) {
+    return (
+      <EmptyState icon={<Wrench className="w-8 h-8" />} title="Couldn't load services"
+        description="Check that the backend API is reachable, then try again."
+        action={<Button onClick={load}>Retry</Button>} />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -97,7 +100,16 @@ export default function ServicesPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {services.map(s => (
-            <Card key={s.id} className="p-5 group hover:border-blue-200 transition-colors">
+            <Card key={s.id} className="p-0 overflow-hidden group hover:border-blue-200 transition-colors">
+              {s.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={s.image} alt={s.name} className="w-full h-32 object-cover" />
+              ) : (
+                <div className="w-full h-32 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                  <Wrench className="w-7 h-7 text-slate-300" />
+                </div>
+              )}
+              <div className="p-5">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded-full">{s.category?.name}</span>
@@ -125,6 +137,7 @@ export default function ServicesPage() {
                   {s.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
+              </div>
             </Card>
           ))}
         </div>
@@ -132,6 +145,12 @@ export default function ServicesPage() {
 
       <Modal open={modal.open} onClose={() => setModal({ open: false })} title={modal.item ? 'Edit Service' : 'Add Service'} size="md">
         <div className="space-y-4">
+          <ImageUpload
+            label="Service Image"
+            value={form.image}
+            onChange={(url) => setForm(f => ({ ...f, image: url }))}
+            folder="services"
+          />
           <Select label="Category" value={form.categoryId} onChange={(e: any) => setForm(f => ({ ...f, categoryId: e.target.value }))}>
             <option value="">Select category</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}

@@ -86,6 +86,17 @@ export const paymentsApi = {
     api.get('/admin/payments/worker-wallets', { params: { page, limit } }),
 };
 
+// ─── Upload ────────────────────────────────────────────────────────────
+export const uploadApi = {
+  single: (file: File, folder: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/upload/single?folder=${folder}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
+
 // ─── Categories ────────────────────────────────────────────────────────
 export const categoriesApi = {
   list: () => api.get('/categories?all=true'),
