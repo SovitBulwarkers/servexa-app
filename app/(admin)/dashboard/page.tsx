@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { formatCurrency } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -25,6 +26,7 @@ const BOOKING_COLORS: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [revenue, setRevenue] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -82,24 +84,32 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="cursor-pointer" onClick= {()=>router.push('/customers')}>
         <StatCard title="Total Customers" value={stats?.totalUsers?.toLocaleString() ?? '—'}
           icon={<Users className="w-5 h-5 text-blue-600" />} iconBg="bg-blue-50"
           subtitle="Registered users" />
+          </div>
+          <div className="cursor-pointer" onClick= {()=>router.push('/tickets')}>
         <StatCard title="Active Workers" value={stats?.totalWorkers?.toLocaleString() ?? '—'}
           icon={<HardHat className="w-5 h-5 text-emerald-600" />} iconBg="bg-emerald-50"
           subtitle={`${stats?.pendingWorkers ?? 0} pending approval`} />
+        </div>
+        <div className="cursor-pointer" onClick= {()=>router.push('/bookings')}>
         <StatCard title="Total Bookings" value={stats?.totalBookings?.toLocaleString() ?? '—'}
           icon={<CalendarCheck className="w-5 h-5 text-purple-600" />} iconBg="bg-purple-50"
           subtitle={`${stats?.todayBookings ?? 0} today`} />
+        </div>
+        <div className="cursor-pointer" onClick= {()=>router.push('/reports')}>
         <StatCard title="Total Revenue" value={formatCurrency(stats?.totalRevenue ?? 0)}
           icon={<TrendingUp className="w-5 h-5 text-amber-600" />} iconBg="bg-amber-50"
           subtitle={`${formatCurrency(stats?.todayRevenue ?? 0)} today`} />
+        </div>
       </div>
 
       {/* Alerts row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Card className="p-5 border-l-4 border-l-amber-400">
-          <div className="flex items-center gap-3">
+          <div onClick={() => router.push('/workers')} className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-amber-500" />
             <div>
               <p className="font-semibold text-slate-800">{stats?.pendingWorkers ?? 0} Workers Pending</p>
@@ -108,7 +118,7 @@ export default function DashboardPage() {
           </div>
         </Card>
         <Card className="p-5 border-l-4 border-l-red-400">
-          <div className="flex items-center gap-3">
+          <div onClick={() => router.push('/support')} className="flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-red-500" />
             <div>
               <p className="font-semibold text-slate-800">{stats?.openTickets ?? 0} Open Tickets</p>
