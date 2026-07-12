@@ -8,6 +8,7 @@ interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isNewUser: boolean;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -19,13 +20,14 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false); 
 
   const bootstrap = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
       if (token) {
         const { data } = await AuthAPI.me();
-        setUser(data);
+        setUser(data.data);
       }
     } catch {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
@@ -55,6 +57,7 @@ if (accessToken) {
 }
 
 setUser(auth.user);
+setIsNewUser(!!auth.isNew);
 
 if (!auth.user) {
   const me = await AuthAPI.me();
@@ -71,7 +74,7 @@ if (!auth.user) {
 
   const refreshUser = async () => {
     const { data } = await AuthAPI.me();
-    setUser(data);
+    setUser(data.data);
   };
 
   return (
@@ -84,6 +87,7 @@ if (!auth.user) {
         verifyOtp,
         logout,
         refreshUser,
+        isNewUser,
       }}
     >
       {children}

@@ -8,7 +8,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { usePushNotifications } from '../src/hooks/usePushNotifications';
 
 function RootNavigation() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isNewUser } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -21,7 +21,7 @@ function RootNavigation() {
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)');
+       router.replace(isNewUser ? '/(auth)/create-profile' : '/(tabs)');
     }
   }, [isAuthenticated, isLoading, segments]);
 
