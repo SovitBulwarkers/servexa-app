@@ -21,7 +21,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.homeserve.customer"
+      "bundleIdentifier": "com.homeserve.customer",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.homeserve.customer",
@@ -41,7 +44,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b2bd51ff-dfda-49b8-bdbc-53377d22e0f8"
+        "projectId": "a74b6fc8-bef4-418c-8a18-bcb3116e43f2"
       }
     }
   }
