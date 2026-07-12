@@ -65,7 +65,7 @@ export default function Login() {
           </View>
 
           <Button title="Continue" onPress={handleContinue} loading={loading} />
-
+{/* 
           <View style={styles.divider}>
             <View style={styles.line} />
             <Text style={styles.dividerText}>or</Text>
@@ -76,7 +76,7 @@ export default function Login() {
             title="Continue as Guest"
             onPress={() => router.push('/(auth)/otp')}
             variant="outline"
-          />
+          /> */}
 
           <Text style={styles.terms}>
             By continuing you agree to our Terms of Service and Privacy Policy.
