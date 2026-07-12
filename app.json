@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "HomeServe",
+    "slug": "homeserve-customer",
+    "scheme": "homeserve",
+    "version": "1.0.2",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#1E63E9"
+        }
+      ],
+      "expo-font"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.homeserve.customer"
+    },
+    "android": {
+      "package": "com.homeserve.customer",
+      "adaptiveIcon": {
+        "backgroundColor": "#1E63E9",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b2bd51ff-dfda-49b8-bdbc-53377d22e0f8"
+      }
+    }
+  }
+}
