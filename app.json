@@ -22,12 +22,14 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.homeserve.customer",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.homeserve.customer",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#1E63E9",
         "foregroundImage": "./assets/android-icon-foreground.png",

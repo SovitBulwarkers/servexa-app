@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "587015639247",
+    "project_id": "servexa-58ebf",
+    "storage_bucket": "servexa-58ebf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:587015639247:android:106b33a8a79e7930ed67ba",
+        "android_client_info": {
+          "package_name": "com.homeserve.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLHnb9g_tkK4LHXWrXTdzFmPMHCjsNFhg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

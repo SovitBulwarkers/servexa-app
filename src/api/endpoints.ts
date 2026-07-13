@@ -65,13 +65,14 @@ export interface Booking {
   scheduledDate: string;
   scheduledTime: string;
   total?: number;
+  finalAmount?: number;
   items?: { service: Service; quantity: number }[];
   worker?: Worker;
   address?: Address;
   review?: { id: string; rating: number } | null;
+  payment?: { status: string; method: string; amount: number };
   createdAt: string;
 }
-
 // ---------- Auth ----------
 export const AuthAPI = {
   sendOtp: (phone: string, role = 'CUSTOMER') =>
@@ -129,8 +130,8 @@ export const BookingAPI = {
   create: (data: CreateBookingPayload) => api.post<Booking>('/bookings', data),
   myBookings: () => api.get<Booking[]>('/bookings/my'),
   getById: (id: string) => api.get<Booking>(`/bookings/${id}`),
-  cancel: (id: string, reason?: string) =>
-    api.put(`/bookings/${id}/cancel`, { reason }),
+cancel: (id: string, reason?: string, refundTo?: 'ORIGINAL' | 'WALLET') =>
+    api.put(`/bookings/${id}/cancel`, { reason, refundTo }),
 };
 
 // ---------- Reviews ----------

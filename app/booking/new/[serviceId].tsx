@@ -289,7 +289,7 @@ export default function BookingFlow() {
   };
 
   const dates = genDates();
-  const total = (service?.price ?? 0) - couponDiscount;
+  const total = Math.round(((service?.price ?? 0) - couponDiscount) * 100) / 100;
 
   if (loading)
     return (
@@ -632,7 +632,7 @@ export default function BookingFlow() {
                 )}
                 <View style={[styles.summaryRow, styles.totalRow]}>
                   <Text style={styles.totalLabel}>Total</Text>
-                  <Text style={styles.totalVal}>₹{total}</Text>
+                  <Text style={styles.totalVal}>₹{total.toFixed(2)}</Text>
                 </View>
               </Card>
 
@@ -762,7 +762,7 @@ export default function BookingFlow() {
           />
         ) : (
           <Button
-            title={`Pay ₹${total} & Confirm`}
+          title={`Pay ₹${total.toFixed(2)} & Confirm`}
             onPress={handleBook}
             loading={booking}
           />

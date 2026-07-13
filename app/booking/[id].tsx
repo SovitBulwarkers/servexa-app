@@ -46,25 +46,47 @@ export default function BookingDetail() {
 
   useEffect(() => { if (id) load(); }, [id]);
 
-  const cancel = () => {
-    Alert.alert('Cancel Booking', 'Are you sure? Cancellation charges may apply.', [
+  const doCancel = async (refundTo?: 'ORIGINAL' | 'WALLET') => {
+  setCancelling(true);
+  try {
+    await BookingAPI.cancel(id!, 'Changed plans', refundTo);
+    setBooking((b) => b ? { ...b, status: 'CANCELLED' } : b);
+    if (refundTo) {
+      Alert.alert(
+        'Booking Cancelled',
+        refundTo === 'WALLET'
+          ? 'Your refund has been credited to your HomeServe Wallet.'
+          : 'Your refund has been initiated to your original payment method. It may take 5-7 business days to reflect.'
+      );
+    }
+  } catch {
+    Alert.alert('Error', 'Could not cancel booking.');
+  } finally {
+    setCancelling(false);
+  }
+};
+
+const cancel = () => {
+  const isPaid = booking?.payment?.status === 'SUCCESS';
+
+  if (!isPaid) {
+    Alert.alert('Cancel Booking', 'Are you sure you want to cancel this booking?', [
       { text: 'Keep it', style: 'cancel' },
-      {
-        text: 'Cancel Booking', style: 'destructive',
-        onPress: async () => {
-          setCancelling(true);
-          try {
-            await BookingAPI.cancel(id!, 'Changed plans');
-            setBooking((b) => b ? { ...b, status: 'CANCELLED' } : b);
-          } catch {
-            Alert.alert('Error', 'Could not cancel booking.');
-          } finally {
-            setCancelling(false);
-          }
-        },
-      },
+      { text: 'Cancel Booking', style: 'destructive', onPress: () => doCancel() },
     ]);
-  };
+    return;
+  }
+
+  Alert.alert(
+    'Cancel Booking',
+    'Are you sure? Choose where you\u2019d like your refund sent.',
+    [
+      { text: 'Keep it', style: 'cancel' },
+      { text: 'Refund to Wallet', onPress: () => doCancel('WALLET') },
+      { text: 'Refund to Original Method', style: 'destructive', onPress: () => doCancel('ORIGINAL') },
+    ]
+  );
+};
 
   if (loading) {
     return <ActivityIndicator color={colors.primary} style={{ flex: 1, marginTop: 80 }} />;
