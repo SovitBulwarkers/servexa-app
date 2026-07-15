@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, Pressable,
-  ScrollView, ActivityIndicator, Alert,
+  ScrollView, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,63 +54,73 @@ export default function ReviewScreen() {
         <Text style={styles.headerTitle}>Rate & Review</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.question}>How was your experience?</Text>
-        <Text style={styles.sub}>Your feedback helps us improve our service quality.</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
+          <Text style={styles.question}>How was your experience?</Text>
+          <Text style={styles.sub}>Your feedback helps us improve our service quality.</Text>
 
-        {/* Stars */}
-        <View style={styles.starsRow}>
-          {[1, 2, 3, 4, 5].map((s) => (
-            <Pressable
-              key={s}
-              onPressIn={() => setHovered(s)}
-              onPressOut={() => setHovered(0)}
-              onPress={() => setRating(s)}
-            >
-              <Ionicons
-                name={s <= display ? 'star' : 'star-outline'}
-                size={44}
-                color={s <= display ? colors.star : colors.border}
-              />
-            </Pressable>
-          ))}
-        </View>
-        {display > 0 && (
-          <Text style={styles.ratingLabel}>{LABELS[display]}</Text>
-        )}
-
-        {/* Quick tags */}
-        <Text style={styles.sectionTitle}>What did you like?</Text>
-        <View style={styles.tagsWrap}>
-          {TAGS.map((t) => {
-            const sel = selectedTags.includes(t);
-            return (
-              <Pressable key={t} style={[styles.tag, sel && styles.tagSel]} onPress={() => toggleTag(t)}>
-                {sel && <Ionicons name="checkmark" size={12} color={colors.primary} />}
-                <Text style={[styles.tagText, sel && styles.tagTextSel]}>{t}</Text>
+          {/* Stars */}
+          <View style={styles.starsRow}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Pressable
+                key={s}
+                onPressIn={() => setHovered(s)}
+                onPressOut={() => setHovered(0)}
+                onPress={() => setRating(s)}
+              >
+                <Ionicons
+                  name={s <= display ? 'star' : 'star-outline'}
+                  size={44}
+                  color={s <= display ? colors.star : colors.border}
+                />
               </Pressable>
-            );
-          })}
-        </View>
+            ))}
+          </View>
+          {display > 0 && (
+            <Text style={styles.ratingLabel}>{LABELS[display]}</Text>
+          )}
 
-        {/* Comment */}
-        <Text style={styles.sectionTitle}>Add a comment (optional)</Text>
-        <TextInput
-          style={styles.commentInput}
-          placeholder="Tell us more about your experience..."
-          placeholderTextColor={colors.textMuted}
-          multiline
-          numberOfLines={5}
-          value={comment}
-          onChangeText={setComment}
-          textAlignVertical="top"
-        />
+          {/* Quick tags */}
+          <Text style={styles.sectionTitle}>What did you like?</Text>
+          <View style={styles.tagsWrap}>
+            {TAGS.map((t) => {
+              const sel = selectedTags.includes(t);
+              return (
+                <Pressable key={t} style={[styles.tag, sel && styles.tagSel]} onPress={() => toggleTag(t)}>
+                  {sel && <Ionicons name="checkmark" size={12} color={colors.primary} />}
+                  <Text style={[styles.tagText, sel && styles.tagTextSel]}>{t}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
-        <Button title="Submit Review" onPress={submit} loading={loading} style={{ marginTop: spacing.xxl }} />
-        <Pressable style={styles.skipBtn} onPress={() => router.back()}>
-          <Text style={styles.skipText}>Skip for now</Text>
-        </Pressable>
-      </ScrollView>
+          {/* Comment */}
+          <Text style={styles.sectionTitle}>Add a comment (optional)</Text>
+          <TextInput
+            style={styles.commentInput}
+            placeholder="Tell us more about your experience..."
+            placeholderTextColor={colors.textMuted}
+            multiline
+            numberOfLines={5}
+            value={comment}
+            onChangeText={setComment}
+            textAlignVertical="top"
+          />
+
+          <Button title="Submit Review" onPress={submit} loading={loading} style={{ marginTop: spacing.xxl }} />
+          <Pressable style={styles.skipBtn} onPress={() => router.back()}>
+            <Text style={styles.skipText}>Skip for now</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

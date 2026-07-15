@@ -206,29 +206,39 @@ export default function BookingFlow() {
     if (!selectedDate || !selectedTime) return;
     setBooking(true);
     try {
-      const { data: created } = await BookingAPI.create({
+      const bookingPayload = {
         items: [{ serviceId: serviceId!, quantity: 1 }],
         scheduledDate: selectedDate.toISOString(),
         scheduledTime: selectedTime,
         addressId: selectedAddressId ?? undefined,
         description: description || undefined,
-      });
+      };
 
-      const bookingId = created.data.id;
+      let bookingId: string;
 
       if (paymentMethod === "CASH") {
+        // Cash on Service is the one exception: there's no online payment
+        // to wait on, so the booking is created immediately as before.
+        const { data: created } = await BookingAPI.create(bookingPayload);
+        bookingId = created.data.id;
         await PaymentAPI.payCash(bookingId);
       } else if (paymentMethod === "WALLET") {
+        const { data: created } = await BookingAPI.create(bookingPayload);
+        bookingId = created.data.id;
         await PaymentAPI.payFromWallet(bookingId);
       } else {
-        // UPI / CARD -> real Razorpay checkout
+        // UPI / CARD -> no booking is created yet. We only ask the
+        // backend to price it and open a Razorpay order; the booking
+        // itself is created server-side only once payment is verified,
+        // so a cancelled/failed payment never leaves a booking behind.
         if (!RazorpayCheckout || typeof RazorpayCheckout.open !== "function") {
           throw new Error(
             "Online payment isn't available in this build. Please install the latest app build, or choose Cash on Service.",
           );
         }
 
-        const { data: orderRes }: any = await PaymentAPI.createOrder(bookingId);
+        const { data: orderRes }: any =
+          await PaymentAPI.createOrderForNewBooking(bookingPayload);
         const order = orderRes.data ?? orderRes;
 
         if (!order?.orderId || !order?.keyId) {
@@ -243,7 +253,7 @@ export default function BookingFlow() {
           amount: order.amount,
           currency: order.currency,
           name: "HomeServe",
-          description: `Booking ${order.bookingNumber}`,
+          description: "Service booking payment",
           prefill: {
             email: user?.email || undefined,
             contact: user?.phone || undefined,
@@ -252,13 +262,15 @@ export default function BookingFlow() {
           theme: { color: colors.primary },
         });
 
-        await PaymentAPI.verify({
-          bookingId,
+        // The booking is created here, on the backend, only now that
+        // Razorpay confirms payment succeeded.
+        const { data: verifyRes }: any = await PaymentAPI.verify({
           razorpayOrderId: checkoutResult.razorpay_order_id,
           razorpayPaymentId: checkoutResult.razorpay_payment_id,
           razorpaySignature: checkoutResult.razorpay_signature,
           method: paymentMethod,
         });
+        bookingId = (verifyRes.data ?? verifyRes).id;
       }
 
       router.replace({ pathname: "/booking/success", params: { bookingId } });
@@ -269,7 +281,7 @@ export default function BookingFlow() {
       const cancelledByUser = e?.code === 0 || /cancel/i.test(e?.description ?? "");
       if (cancelledByUser) {
         setBooking(false);
-        return; // user closed the payment sheet — no need for an alert
+        return; // user closed the payment sheet — no booking was ever created
       }
       const message =
         e?.response?.data?.message ||
@@ -289,7 +301,7 @@ export default function BookingFlow() {
   };
 
   const dates = genDates();
-  const total = Math.round(((service?.price ?? 0) - couponDiscount) * 100) / 100;
+  const total = (service?.price ?? 0) - couponDiscount;
 
   if (loading)
     return (
@@ -632,7 +644,7 @@ export default function BookingFlow() {
                 )}
                 <View style={[styles.summaryRow, styles.totalRow]}>
                   <Text style={styles.totalLabel}>Total</Text>
-                  <Text style={styles.totalVal}>₹{total.toFixed(2)}</Text>
+                  <Text style={styles.totalVal}>₹{total}</Text>
                 </View>
               </Card>
 
@@ -762,7 +774,7 @@ export default function BookingFlow() {
           />
         ) : (
           <Button
-          title={`Pay ₹${total.toFixed(2)} & Confirm`}
+            title={`Pay ₹${total} & Confirm`}
             onPress={handleBook}
             loading={booking}
           />

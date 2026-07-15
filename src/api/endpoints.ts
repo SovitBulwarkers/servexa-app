@@ -65,14 +65,13 @@ export interface Booking {
   scheduledDate: string;
   scheduledTime: string;
   total?: number;
-  finalAmount?: number;
   items?: { service: Service; quantity: number }[];
   worker?: Worker;
   address?: Address;
   review?: { id: string; rating: number } | null;
-  payment?: { status: string; method: string; amount: number };
   createdAt: string;
 }
+
 // ---------- Auth ----------
 export const AuthAPI = {
   sendOtp: (phone: string, role = 'CUSTOMER') =>
@@ -130,8 +129,8 @@ export const BookingAPI = {
   create: (data: CreateBookingPayload) => api.post<Booking>('/bookings', data),
   myBookings: () => api.get<Booking[]>('/bookings/my'),
   getById: (id: string) => api.get<Booking>(`/bookings/${id}`),
-cancel: (id: string, reason?: string, refundTo?: 'ORIGINAL' | 'WALLET') =>
-    api.put(`/bookings/${id}/cancel`, { reason, refundTo }),
+  cancel: (id: string, reason?: string) =>
+    api.put(`/bookings/${id}/cancel`, { reason }),
 };
 
 // ---------- Reviews ----------
@@ -222,19 +221,24 @@ export interface RazorpayOrder {
   amount: number;
   currency: string;
   keyId: string;
-  bookingNumber: string;
+  bookingNumber?: string;
 }
 
 export const PaymentAPI = {
+  // New flow: prices + opens a Razorpay order for a booking that doesn't
+  // exist yet. The booking is created server-side only after verify()
+  // succeeds — see bookings/new/[serviceId].tsx.
+  createOrderForNewBooking: (data: CreateBookingPayload) =>
+    api.post<RazorpayOrder>('/payments/create-order', data),
+  // Legacy: for an already-existing booking (kept for any other callers).
   createOrder: (bookingId: string) =>
     api.post<RazorpayOrder>(`/payments/create-order/${bookingId}`),
   verify: (data: {
-    bookingId: string;
     razorpayOrderId: string;
     razorpayPaymentId: string;
     razorpaySignature: string;
     method: string;
-  }) => api.post('/payments/verify', data),
+  }) => api.post<Booking>('/payments/verify', data),
   payCash: (bookingId: string) => api.post(`/payments/cash/${bookingId}`),
   payFromWallet: (bookingId: string) => api.post(`/payments/wallet/${bookingId}`),
   getDetails: (bookingId: string) => api.get(`/payments/${bookingId}`),
