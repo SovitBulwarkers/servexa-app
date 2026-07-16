@@ -301,7 +301,7 @@ export default function BookingFlow() {
   };
 
   const dates = genDates();
-  const total = (service?.price ?? 0) - couponDiscount;
+  const total = Math.round((((service?.price ?? 0) - couponDiscount) + Number.EPSILON) * 100) / 100;
 
   if (loading)
     return (
@@ -376,7 +376,7 @@ export default function BookingFlow() {
       <StepIndicator current={step} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView

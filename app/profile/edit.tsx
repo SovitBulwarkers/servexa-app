@@ -64,7 +64,7 @@ export default function EditProfile() {
         <Text style={styles.headerTitle}>Edit Profile</Text>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : "height"} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll}>
           {/* Avatar */}
           <View style={styles.avatarSection}>

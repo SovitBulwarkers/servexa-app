@@ -164,7 +164,7 @@ export default function AddressesScreen() {
               <Ionicons name="close" size={24} color={colors.textPrimary} />
             </Pressable>
           </View>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : "height"} style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ padding: spacing.xl }}>
               <Pressable onPress={useMyLocation} style={styles.gpsBtn} disabled={locating}>
                 {locating ? (

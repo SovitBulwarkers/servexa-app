@@ -98,7 +98,7 @@ export default function BookingsScreen() {
             <Text style={styles.noWorker}>Worker not assigned yet</Text>
           )}
           {item.finalAmount ? (
-            <Text style={styles.totalAmount}>₹{item.finalAmount}</Text>
+            <Text style={styles.totalAmount}>₹{Math.round(((item.finalAmount ?? 0) + Number.EPSILON) * 100) / 100}</Text>
           ) : null}
         </View>
 

@@ -129,8 +129,15 @@ export const BookingAPI = {
   create: (data: CreateBookingPayload) => api.post<Booking>('/bookings', data),
   myBookings: () => api.get<Booking[]>('/bookings/my'),
   getById: (id: string) => api.get<Booking>(`/bookings/${id}`),
-  cancel: (id: string, reason?: string) =>
-    api.put(`/bookings/${id}/cancel`, { reason }),
+  cancel: (
+  id: string,
+  reason?: string,
+  refundTo?: 'ORIGINAL' | 'WALLET'
+) =>
+  api.put(`/bookings/${id}/cancel`, {
+    reason,
+    refundTo,
+  }),
 };
 
 // ---------- Reviews ----------
@@ -148,8 +155,8 @@ export const WalletAPI = {
 // ---------- Coupons ----------
 export const CouponAPI = {
   getActive: () => api.get('/coupons/active'),
-  validate: (code: string, bookingTotal: number) =>
-    api.post('/coupons/validate', { code, bookingTotal }),
+  validate: (code: string, orderAmount: number) =>
+    api.post('/coupons/validate', { code, orderAmount }),
 };
 
 // ---------- Banners (admin-managed, shown on Home) ----------

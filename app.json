@@ -17,7 +17,9 @@
           "color": "#1E63E9"
         }
       ],
-      "expo-font"
+      "@react-native-firebase/app",
+      "expo-font",
+      "@react-native-firebase/messaging"
     ],
     "ios": {
       "supportsTablet": true,
