@@ -142,24 +142,30 @@ export default function TicketDetail() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => {
             const isAdmin = item.senderType === "ADMIN";
+            const isAi = item.senderType === "AI";
+            const isOtherSide = isAdmin || isAi;
             return (
               <View
                 style={[
                   styles.bubbleRow,
-                  isAdmin ? styles.rowLeft : styles.rowRight,
+                  isOtherSide ? styles.rowLeft : styles.rowRight,
                 ]}
               >
                 <View
                   style={[
                     styles.bubble,
-                    isAdmin ? styles.bubbleAdmin : styles.bubbleMe,
+                    isOtherSide ? styles.bubbleAdmin : styles.bubbleMe,
                   ]}
                 >
-                  {isAdmin && <Text style={styles.bubbleSender}>Support</Text>}
+                  {isOtherSide && (
+                    <Text style={styles.bubbleSender}>
+                      {isAi ? "AI Assistant" : "Support"}
+                    </Text>
+                  )}
                   <Text
                     style={[
                       styles.bubbleText,
-                      isAdmin ? styles.bubbleTextAdmin : styles.bubbleTextMe,
+                      isOtherSide ? styles.bubbleTextAdmin : styles.bubbleTextMe,
                     ]}
                   >
                     {item.message}
@@ -167,7 +173,7 @@ export default function TicketDetail() {
                   <Text
                     style={[
                       styles.bubbleTime,
-                      isAdmin ? styles.bubbleTimeAdmin : styles.bubbleTimeMe,
+                      isOtherSide ? styles.bubbleTimeAdmin : styles.bubbleTimeMe,
                     ]}
                   >
                     {new Date(item.createdAt).toLocaleString("en-IN", {

@@ -235,6 +235,19 @@ export default function ProfileScreen() {
             />
           </MenuSection>
 
+          <MenuSection title="Membership">
+            <MenuItem
+              icon="star-outline"
+              label="Subscription Plans"
+              onPress={() => router.push("/subscription/plans")}
+            />
+            <MenuItem
+              icon="ribbon-outline"
+              label="My Subscription"
+              onPress={() => router.push("/subscription/my")}
+            />
+          </MenuSection>
+
           <MenuSection title="Support">
             <MenuItem
               icon="help-circle-outline"
@@ -244,7 +257,7 @@ export default function ProfileScreen() {
             <MenuItem
               icon="chatbubble-outline"
               label="Live Chat"
-              onPress={() => router.push("/support/tickets")}
+              onPress={() => router.push("/support/ai-chat")}
             />
             <MenuItem
               icon="document-text-outline"

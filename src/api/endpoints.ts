@@ -258,3 +258,74 @@ export interface TrackingLocation {
   longitude: number;
   timestamp: string;
 }
+
+export const TrackingAPI = {
+  getLastLocation: (bookingId: string) =>
+    api.get<{ bookingStatus: string; location: TrackingLocation | null }>(
+      `/tracking/booking/${bookingId}`,
+    ),
+};
+
+// ---------- Subscriptions ----------
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  durationDays: number;
+  discountPercent: number;
+  maxDiscountPerBooking?: number;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface UserSubscription {
+  id: string;
+  userId: string;
+  planId: string;
+  status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+  startDate?: string;
+  endDate?: string;
+  plan: SubscriptionPlan;
+}
+
+export const SubscriptionAPI = {
+  getPlans: () => api.get<{ data: SubscriptionPlan[] }>('/subscriptions/plans'),
+  getMySubscription: () =>
+    api.get<{ data: UserSubscription | null }>('/subscriptions/my'),
+  createOrder: (planId: string) =>
+    api.post<{
+      data: {
+        subscriptionId: string;
+        razorpayOrderId: string;
+        amount: number; // in paise, matches Razorpay/booking convention
+        currency: string;
+        keyId: string;
+      };
+    }>('/subscriptions/order', { planId }),
+  verify: (data: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  }) => api.post<{ data: UserSubscription }>('/subscriptions/verify', data),
+  cancel: () => api.post('/subscriptions/cancel'),
+};
+
+// ---------- AI Support ----------
+export interface AiChatTurn {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export const AiSupportAPI = {
+  chat: (message: string, history: AiChatTurn[]) =>
+    api.post<{ data: { reply: string; suggestEscalation: boolean } }>(
+      '/ai-support/chat',
+      { message, history },
+    ),
+  escalate: (history: AiChatTurn[], subject?: string) =>
+    api.post<{ data: { ticketId: string } }>('/ai-support/escalate', {
+      history,
+      subject,
+    }),
+};
