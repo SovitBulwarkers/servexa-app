@@ -4,7 +4,7 @@ import api from './client';
 export interface User {
   id: string;
   name?: string;
-  phone: string;
+  phone?: string;
   email?: string;
   avatar?: string;
   role: string;
@@ -79,6 +79,11 @@ export const AuthAPI = {
   verifyOtp: (phone: string, otp: string, role = 'CUSTOMER') =>
     api.post('/auth/verify-otp', { phone, otp, role }),
   me: () => api.get<User>('/auth/me'),
+  googleLogin: (idToken: string) => api.post('/auth/google', { idToken }),
+  emailRegister: (email: string, password: string, name: string) =>
+    api.post('/auth/email/register', { email, password, name }),
+  emailLogin: (email: string, password: string) =>
+    api.post('/auth/email/login', { email, password }),
 };
 
 // ---------- Users ----------

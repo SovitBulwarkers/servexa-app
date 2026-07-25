@@ -163,7 +163,7 @@ export default function ProfileScreen() {
             </Pressable>
           </View>
           <Text style={styles.userName}>{user?.name ?? "User"}</Text>
-          <Text style={styles.userPhone}>{user?.phone}</Text>
+          <Text style={styles.userPhone}>{user?.phone || user?.email || ''}</Text>
           {user?.email ? (
             <Text style={styles.userEmail}>{user.email}</Text>
           ) : null}

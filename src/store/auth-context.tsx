@@ -11,6 +11,9 @@ interface AuthContextValue {
   isNewUser: boolean;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, otp: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -45,24 +48,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AuthAPI.sendOtp(phone, 'CUSTOMER');
   };
 
+  // Shared by verifyOtp/Google/email — stores the token, sets the user,
+  // and falls back to /auth/me if the login response didn't include a
+  // full user object for some reason.
+  const completeLogin = async (auth: { token?: string; user?: User; isNew?: boolean }) => {
+    if (auth.token) {
+      await SecureStore.setItemAsync(TOKEN_KEY, auth.token);
+    }
+    setUser(auth.user ?? null);
+    setIsNewUser(!!auth.isNew);
+
+    if (!auth.user) {
+      const me = await AuthAPI.me();
+      setUser(me.data.data ?? me.data);
+    }
+  };
+
   const verifyOtp = async (phone: string, otp: string) => {
     const response: any = await AuthAPI.verifyOtp(phone, otp, 'CUSTOMER');
+    await completeLogin(response.data.data);
+  };
 
-const auth = response.data.data;
+  const loginWithGoogle = async (idToken: string) => {
+    const response: any = await AuthAPI.googleLogin(idToken);
+    await completeLogin(response.data.data);
+  };
 
-const accessToken = auth.token;
+  const registerWithEmail = async (email: string, password: string, name: string) => {
+    const response: any = await AuthAPI.emailRegister(email, password, name);
+    await completeLogin(response.data.data);
+  };
 
-if (accessToken) {
-  await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
-}
-
-setUser(auth.user);
-setIsNewUser(!!auth.isNew);
-
-if (!auth.user) {
-  const me = await AuthAPI.me();
-  setUser(me.data.data ?? me.data);
-}
+  const loginWithEmail = async (email: string, password: string) => {
+    const response: any = await AuthAPI.emailLogin(email, password);
+    await completeLogin(response.data.data);
   };
 
   const logout = async () => {
@@ -85,6 +104,9 @@ if (!auth.user) {
         isAuthenticated: !!user,
         sendOtp,
         verifyOtp,
+        loginWithGoogle,
+        registerWithEmail,
+        loginWithEmail,
         logout,
         refreshUser,
         isNewUser,
