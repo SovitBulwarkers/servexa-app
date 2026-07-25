@@ -12,7 +12,20 @@
           "package_name": "com.homeserve.customer"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "587015639247-6erbhj6nbovu2he0oamk2alpume7q5mt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.homeserve.customer",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "587015639247-bclne4ouomlc8mvi3dh57416mt2613ai.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCLHnb9g_tkK4LHXWrXTdzFmPMHCjsNFhg"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "587015639247-bclne4ouomlc8mvi3dh57416mt2613ai.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "587015639247-vbh67rrmo78kucuad0nk8ejejpp6osu8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.homeserve.customer"
+              }
+            }
+          ]
         }
       }
     }
