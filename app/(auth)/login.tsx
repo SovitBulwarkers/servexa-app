@@ -10,10 +10,12 @@ import KeyboardScreen from '../../src/components/KeyboardScreen';
 import { useAuth } from '../../src/store/auth-context';
 
 GoogleSignin.configure({
-  // This is the Web Client ID from Google Cloud Console (same one used by
-  // the customer website) — required so the ID token's audience matches
-  // what the backend verifies against, regardless of platform.
-  webClientId: '525658495759-4wcn6j37f7iip1e7djl6a43flrq0bnpd.apps.googleusercontent.com',
+  // Web Client ID (OAuth client_type 3) from the SAME Firebase project as
+  // google-services.json / GoogleService-Info.plist. This now comes from
+  // .env (EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID) instead of being hardcoded —
+  // the previous hardcoded value belonged to a different Firebase project
+  // number than google-services.json, which is what caused DEVELOPER_ERROR.
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
 });
 
 export default function Login() {

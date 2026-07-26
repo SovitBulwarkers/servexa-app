@@ -2,9 +2,12 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// Android emulator -> host machine is 10.0.2.2. iOS simulator/web -> localhost.
-// Update this if testing on a physical device (use your machine's LAN IP).
-export const LOCAL_HOST = 'https://nextjs-backend-with-fix.onrender.com';  //local :  'http://192.168.1.7:3000' 
+// Backend host now comes from .env (EXPO_PUBLIC_API_BASE_URL) instead of being
+// hardcoded here — see .env.example for the variable this expects. Falls back
+// to the previous deployed URL only if the env var is missing, so an old
+// build/config doesn't silently break.
+export const LOCAL_HOST =
+  process.env.EXPO_PUBLIC_API_BASE_URL || 'https://nextjs-backend-with-fix.onrender.com';
 
 export const API_BASE_URL = `${LOCAL_HOST}/api/v1`;
 
